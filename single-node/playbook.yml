@@ -64,12 +64,12 @@
       state: directory
       mode: '0755'
 
-  - name: Scarica la chiave GPG di Kubernetes
+  - name: Get Kubernetes GPG key
     get_url:
       url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
       dest: /tmp/kubernetes-release.key
 
-  - name: Converte la chiave in formato dearmored
+  - name: Convert key to dearmored format
     become: yes
     # Ansible 2.12+ ha il modulo community.crypto 
     # (community.crypto.openssl_dhparam, ecc.), ma se non 
@@ -80,7 +80,7 @@
     args:
       creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-  - name: Aggiunge il repository di Kubernetes
+  - name: Add Kuernetes repository
     become: yes
     apt_repository:
       repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /"
