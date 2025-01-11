@@ -74,12 +74,11 @@
        state: directory
        mode: '0755'
 
-   - name: Add Kubernetes GPG key
+   - name: Adding Kubernetes GPG key
      become: yes
-     ansible.builtin.get_url:
+     ansible.builtin.apt_key:
        url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
-       dest: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-       mode: '0644'
+       state: present
 
    - name: Add Kubernetes repository
      become: yes
