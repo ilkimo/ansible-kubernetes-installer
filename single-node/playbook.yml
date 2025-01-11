@@ -76,7 +76,7 @@
 
   - name: Scarica la chiave GPG di Kubernetes
     get_url:
-      url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+      url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
       dest: /tmp/kubernetes-release.key
 
   - name: Converte la chiave in formato dearmored
@@ -93,7 +93,7 @@
   - name: Aggiunge il repository di Kubernetes
     become: yes
     apt_repository:
-      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /"
       filename: "kubernetes.list"
       state: present
 
@@ -116,4 +116,4 @@
     apt:
       name: kubectl
       state: present
-    #  when: "'masters' in group_names"
+    #  when: "'masters' in group_names" # TODO
