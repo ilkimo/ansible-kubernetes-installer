@@ -107,3 +107,14 @@
       name: kubectl
       state: present
     #  when: "'masters' in group_names" # TODO
+
+  # Blocking packages to the exact version. Kubernetes has to be
+  # updated with special attention
+  - name: Hold kubeadm, kubectl, and kubelet packages
+    become: yes
+    command: apt-mark hold "{{ item }}"
+    loop:
+      - kubeadm
+      - kubectl
+      - kubelet
+    changed_when: false
