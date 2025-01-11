@@ -11,12 +11,12 @@
   hosts: myservers
   tasks:
 
-   - name: disable UFW firewall for labs
-     service:
-        name: ufw
-        state: stopped
-        enabled: false
-     become: yes
+  - name: disable UFW firewall for labs
+    become: yes
+    service:
+      name: ufw
+      state: stopped
+      enabled: false
 
   #- name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
     #sysctl:
@@ -25,89 +25,95 @@
       #state: present
       #reload: yes
 
-   - name: Installation of apt-utils
-     become: yes
-     apt:
+  - name: Installation of apt-utils
+    become: yes
+    apt:
       name: apt-transport-https
       state: present
       update_cache: yes
 
-   - name: Adding Docker GPG key
-     become: yes
-     ansible.builtin.apt_key:
-       url: https://download.docker.com/linux/ubuntu/gpg
-       state: present
+  - name: Adding Docker GPG key
+    become: yes
+    ansible.builtin.apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
 
-   - name: Adding Docker Repository
-     become: yes
-     apt_repository:
-       repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-       state: present
+  - name: Adding Docker Repository
+    become: yes
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+      state: present
 
-   - name: Installation of Docker
-     become: yes
-     apt:
+  - name: Installation of Docker
+    become: yes
+    apt:
       name: "{{ item }}"
       state: present
-     loop:
-       - docker-ce
-       - docker-ce-cli
-       - containerd.io
-       - docker-compose
+    loop:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose
 
-   - name: Setting value of SystemdCgroup
-     become: yes
-     shell: |
-       containerd config default | sudo tee /etc/containerd/config.toml | grep SystemdCgroup
-       sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+  - name: Setting value of SystemdCgroup
+    become: yes
+    shell: |
+      containerd config default | sudo tee /etc/containerd/config.toml | grep SystemdCgroup
+      sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
 
-   - name : Starting Service of Docker
-     service:
-       name: docker
-       state: started
-       enabled: yes
+  - name : Starting Service of Docker
+    service:
+      name: docker
+      state: started
+      enabled: yes
 
-   - name: Create directory for apt keyrings
-     become: yes
-     ansible.builtin.file:
-       path: /etc/apt/keyrings
-       state: directory
-       mode: '0755'
+  - name: Create directory for apt keyrings
+    become: yes
+    ansible.builtin.file:
+      path: /etc/apt/keyrings
+      state: directory
+      mode: '0755'
 
-   - name: Adding Kubernetes GPG key
-     become: yes
-     ansible.builtin.apt_key:
-       url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
-       state: present
+  - name: Scarica la chiave GPG di Kubernetes
+    get_url:
+      url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+      dest: /tmp/kubernetes-release.key
 
-   - name: Add Kubernetes repository
-     become: yes
-     ansible.builtin.apt_repository:
+  - name: Converte la chiave in formato dearmored
+    become: yes
+    # Ansible 2.12+ ha il modulo community.crypto 
+    # (community.crypto.openssl_dhparam, ecc.), ma se non 
+    # disponibile, si può usare il modulo command/shell:
+    command: >
+      gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      /tmp/kubernetes-release.key
+    args:
+      creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+  - name: Aggiunge il repository di Kubernetes
+    become: yes
+    apt_repository:
       repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+      filename: "kubernetes.list"
       state: present
 
-   - name: Update apt cache
-     ansible.builtin.apt:
+  - name: Update apt cache
+    become: yes
+    apt:
       update_cache: yes
-      cache_valid_time: 3600
 
-   - name: Install kubelet and kubeadm
-     apt:
-        name: "{{ item }}"
-        state: present
-     loop:
-       - kubeadm
-       - kubelet
+  - name: Install kubelet and kubeadm
+    become: yes
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - kubeadm
+      - kubelet
 
-   - name: start kubelet
-     service:
-       name: kubelet
-       enabled: yes
-       state: started
-
-   - name: install kubectl
-     apt:
-        name: kubectl
-        state: present
-     when: "'masters' in group_names"
-
+  - name: install kubectl
+    become: yes
+    apt:
+      name: kubectl
+      state: present
+    #  when: "'masters' in group_names"
