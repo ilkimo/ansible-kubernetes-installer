@@ -18,17 +18,6 @@
         enabled: false
      become: yes
 
-   - name: Disable SWAP
-     shell: |
-       swapoff -a
-
-   - name: Disable SWAP in fstab
-     lineinfile:
-       path: /etc/fstab
-       regexp: '^.*swap.*$'
-       line: '#\0'
-       backrefs: yes
-
   #- name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
     #sysctl:
       #name: net.bridge.bridge-nf-call-iptables
