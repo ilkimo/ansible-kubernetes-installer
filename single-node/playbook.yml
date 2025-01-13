@@ -80,7 +80,7 @@
     args:
       creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-  - name: Add Kuernetes repository
+  - name: Add Kubernetes repository
     become: yes
     apt_repository:
       repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /"
