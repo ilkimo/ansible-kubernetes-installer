@@ -141,7 +141,7 @@
     file:
       path: "{{ ansible_env.HOME }}/.kube"
       state: directory
-      mode: '0755'
+      mode: '0755' # TODO try reducing permissions, maybe 700
 
   - name: Copy Kubernetes admin configuration
     become: true
@@ -153,9 +153,32 @@
       group: "{{ ansible_user_gid }}"
       mode: '0644'
 
+  - name: Ensure $HOME/.kube directory exists
+    file:
+      path: "{{ ansible_env.HOME }}/.kube"
+      state: directory
+      mode: '0755'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+
+  - name: Copy Kubernetes admin.conf to $HOME/.kube/config
+    become: true
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: "{{ ansible_env.HOME }}/.kube/config"
+      remote_src: yes
+
   - name: Change ownership of the Kubernetes config file
     file:
       path: "{{ ansible_env.HOME }}/.kube/config"
-      owner: "{{ ansible_user_id }}"
-      group: "{{ ansible_user_gid }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
       mode: '0644'
+
+  - name: Download and apply the Calico manifest
+    command: >
+      kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/tigera-operator.yaml
+    args:
+      creates: "/etc/kubernetes/manifests/tigera-operator.yaml"
+    register: calico_output
+    changed_when: calico_output.rc == 0
