@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-  # Specify the base box for Ubuntu 24.04
+  # Specify the base box for Ubuntu 20.04 LTS
   config.vm.box = "ubuntu/focal64"
 
   # Assign a static IP or hostname
