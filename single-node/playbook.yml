@@ -1,5 +1,5 @@
 ---
-- hosts: myservers
+- hosts: kubernetes_cluster
   become: true
   tasks:
     - name: Update and upgrade apt packages
@@ -8,7 +8,7 @@
         upgrade: dist
 
 - name: Initialize master and worker nodes
-  hosts: myservers
+  hosts: control_plane
   tasks:
   - name: disable UFW firewall for labs
     become: true
