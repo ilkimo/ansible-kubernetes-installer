@@ -175,6 +175,48 @@
       group: "{{ ansible_user }}"
       mode: '0644'
 
+  - name: Open control plane ports securely
+    become: true
+    ansible.builtin.iptables:
+      chain: INPUT
+      protocol: tcp
+      destination_port: "{{ item.port }}"
+      jump: ACCEPT
+      match: conntrack          # or "state"
+      ctstate:
+        - NEW
+        - ESTABLISHED
+    with_items:
+      - { port: 6443 }      # Kubernetes API server
+      - { port: 2379 }      # etcd client API
+      - { port: 2380 }      # etcd client API
+      - { port: 10250 }     # Kubelet API
+      - { port: 10259 }     # kube-scheduler
+      - { port: 10257 }     # kube-controller-manager
+      # - { port: 8080 }      # Kubernetes API server (insecure/local)
+
+- name: Open ports for worker nodes
+  hosts: workers
+  tasks:
+  - name: Open worker node ports
+    become: true
+    ansible.builtin.iptables:
+      chain: INPUT
+      protocol: tcp
+      destination_port: "{{ item.port }}"
+      jump: ACCEPT
+      match: conntrack          # or "state"
+      ctstate:
+        - NEW
+        - ESTABLISHED
+    with_items:
+      - { port: 10250 }     # Kubelet API
+      - { port: 10256 }     # kube-proxy
+      - { port: "30000:32767" } # NodePort range
+
+- name: Install Calico CNI
+  hosts: control_plane
+  tasks:
   - name: Download and apply the Calico manifest
     command: >
       kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/tigera-operator.yaml
