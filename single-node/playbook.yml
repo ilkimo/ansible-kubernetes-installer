@@ -133,7 +133,7 @@
   - name: Initialize Kubernetes control plane
     become: true
     command:
-      cmd: kubeadm init --pod-network-cidr=192.168.0.0/16
+      cmd: kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address={{ kube_apiserver_advertise_address }}
     register: kubeadm_init
     ignore_errors: false  # Fail if this step fails
 

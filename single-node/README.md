@@ -29,3 +29,10 @@ A solution could be to use the reload plugin in the Vagrantfile, but I am having
 ```/shell
 ansible-playbook playbook.yml
 ```
+
+ATTENTION!!!
+WHEN PROVISIONING ON REAL MACHINE, OVERRIDE THE VARIABLE BY:
+ansible-playbook -i inventory.ini playbook.yml \
+  -e "kube_apiserver_advertise_address=192.168.56.10"
+
+This is because for this to work on Vagrant I had to change the advertise address to be compatible with VirtualBox network interface (I am writing this in a hurry, please verify information)
